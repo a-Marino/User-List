@@ -1,42 +1,80 @@
-import { Table, User } from "@nextui-org/react";
+import { useMemo, useState } from "react";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  User,
+  Pagination,
+  Spinner,
+} from "@nextui-org/react";
 
 export const UsersList = ({ users }) => {
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 5;
+
+  const pages = Math.ceil(users.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return users.slice(start, end);
+  }, [page, users]);
+
   return (
     <Table
       aria-label="User Table"
-      containerCss={{ border: 0, width: "100%" }}
-      shadow={false}
-      lined
+      classNames={{
+        table: "min-h-[400px]",
+      }}
+      bottomContent={
+        pages > 0 ? (
+          <div className="flex w-full justify-center">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        ) : null
+      }
     >
-      <Table.Header>
-        <Table.Column>User</Table.Column>
-        <Table.Column>Country</Table.Column>
-        <Table.Column>City</Table.Column>
-        <Table.Column>Phone</Table.Column>
-      </Table.Header>
-      <Table.Body>
-        {users.map((user) => {
+      <TableHeader>
+        <TableColumn key="user">User</TableColumn>
+        <TableColumn key="country">Country</TableColumn>
+        <TableColumn key="city">City</TableColumn>
+        <TableColumn key="phone">Phone</TableColumn>
+      </TableHeader>
+      <TableBody
+        items={items}
+        isLoading={!items.length}
+        loadingContent={<Spinner />}
+      >
+        {items.map((item) => {
           return (
-            <Table.Row key={user.email}>
-              <Table.Cell>
+            <TableRow key={item.email}>
+              <TableCell key="user">
                 <User
-                  squared
-                  zoomed
-                  bordered
-                  src={user.picture.thumbnail}
-                  name={user.name.first}
+                  avatarProps={{ radius: "lg", src: item.picture.thumbnail }}
+                  name={item.name.first}
                 >
-                  {user.email}
+                  {item.email}
                 </User>
-              </Table.Cell>
-              <Table.Cell>{user.location.country}</Table.Cell>
-              <Table.Cell>{user.location.city}</Table.Cell>
-              <Table.Cell>{user.phone}</Table.Cell>
-            </Table.Row>
+              </TableCell>
+              <TableCell key="country">{item.location.country}</TableCell>
+              <TableCell key="city">{item.location.city}</TableCell>
+              <TableCell key="phone">{item.phone}</TableCell>
+            </TableRow>
           );
         })}
-      </Table.Body>
-      <Table.Pagination shadow noMargin align="center" rowsPerPage={5} />
+      </TableBody>
     </Table>
   );
 };
